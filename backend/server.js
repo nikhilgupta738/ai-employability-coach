@@ -69,7 +69,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
-    // Compare the provided password with the hashed password in the database
+    // Compare the provided password with the hashed password in the db
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ msg: 'Invalid credentials' });
