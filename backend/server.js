@@ -18,13 +18,22 @@ app.use(express.json());
 // Use CORS middleware
 app.use(cors());
 
-// Basic route to check if the server is running
+const path = require('path');
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
 app.get('/', (req, res) => {
-  res.send('AI Coach Backend is running!');
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
+
 
 const bcrypt = require('bcryptjs');
 const User = require('./models/User'); // Import the User model
+
+// API to get interview questions
+app.get('/api/interview/questions', (req, res) => {
+  const questions = require('./data/questions.json');
+  res.status(200).json(questions);
+});
 
 // User Registration Route
 app.post('/api/auth/register', async (req, res) => {
