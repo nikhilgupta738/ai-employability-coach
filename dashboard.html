@@ -1,32 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | AI Coach</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <header>
-    <h1>Welcome, Student 👋</h1>
-    <nav>
-      <a href="#">Profile</a>
-      <a href="#">Resume</a>
-      <a href="#">Practice</a>
-    </nav>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | AI Coach</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Welcome, Student 👋</h1>
+      <nav>
+        <a href="#">Profile</a>
+        <a href="#">Resume</a>
+        <a href="#">Practice</a>
+        <button id="logoutBtn" class="btn">Logout</button>
+      </nav>
+    </header>
 
-  <main>
-    <h2>Today’s Challenge</h2>
-    <p>“Introduce yourself in 1 minute.”</p>
-    <button class="btn">Start Interview</button>
+    <main>
+      <h2>Today’s Challenge</h2>
+      <p>“Introduce yourself in 1 minute.”</p>
+      <button class="btn">Start Interview</button>
 
-    <h3>Your Progress</h3>
-    <ul>
-      <li>✔ Resume Uploaded</li>
-      <li>✔ 2/5 Interview Questions Completed</li>
-      <li>✖ Soft Skills Pending</li>
-    </ul>
-  </main>
-</body>
+      <h3>Your Progress</h3>
+      <ul>
+        <li>✔ Resume Uploaded</li>
+        <li>✔ 2/5 Interview Questions Completed</li>
+        <li>✖ Soft Skills Pending</li>
+      </ul>
+    </main>
+    <script>
+      // get user from localStorage
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      // if not logged in, kick them out
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        // personalize dashboard
+        document.getElementById(
+          "welcomeText"
+        ).textContent = `Welcome, ${user.name} 👋`;
+      }
+
+      // logout button
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem("user");
+        window.location.href = "login.html";
+      });
+    </script>
+  </body>
 </html>
