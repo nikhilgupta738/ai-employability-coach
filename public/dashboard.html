@@ -8,7 +8,7 @@
   </head>
   <body>
     <header>
-      <h1>Welcome, Student 👋</h1>
+      <h1 id="welcomeText">👋</h1>
       <nav>
         <a href="#">Profile</a>
         <a href="#">Resume</a>
@@ -18,9 +18,22 @@
     </header>
 
     <main>
-      <h2>Today’s Challenge</h2>
-      <p>“Introduce yourself in 1 minute.”</p>
-      <button class="btn">Start Interview</button>
+      <div id="interviewContainer">
+        <h2>Interview Session</h2>
+        <div id="questionDisplay">
+          <p id="currentQuestion">Click "Start Interview" to begin.</p>
+          <p id="progressIndicator"></p>
+        </div>
+        <textarea
+          id="answerInput"
+          placeholder="Type your answer here..."
+          style="width: 80%; height: 150px; display: none"
+        ></textarea>
+        <button id="startInterviewBtn" class="btn">Start Interview</button>
+        <button id="nextQuestionBtn" class="btn" style="display: none">
+          Next Question
+        </button>
+      </div>
 
       <h3>Your Progress</h3>
       <ul>
@@ -29,25 +42,6 @@
         <li>✖ Soft Skills Pending</li>
       </ul>
     </main>
-    <script>
-      // get user from localStorage
-      const user = JSON.parse(localStorage.getItem("user"));
-
-      // if not logged in, kick them out
-      if (!user) {
-        window.location.href = "login.html";
-      } else {
-        // personalize dashboard
-        document.getElementById(
-          "welcomeText"
-        ).textContent = `Welcome, ${user.name} 👋`;
-      }
-
-      // logout button
-      document.getElementById("logoutBtn").addEventListener("click", () => {
-        localStorage.removeItem("user");
-        window.location.href = "login.html";
-      });
-    </script>
+    <script src="js/app.js"></script>
   </body>
 </html>
