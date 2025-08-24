@@ -22,6 +22,7 @@ const nextQuestionBtn = document.getElementById("nextQuestionBtn");
 const questionDisplay = document.getElementById("currentQuestion");
 const answerInput = document.getElementById("answerInput");
 const progressIndicator = document.getElementById("progressIndicator");
+const feedbackArea = document.getElementById("feedback-area");
 
 let questions = [];
 let currentQuestionIndex = 0;
@@ -80,14 +81,43 @@ startInterviewBtn.addEventListener("click", () => {
   fetchQuestions();
 });
 
-nextQuestionBtn.addEventListener("click", () => {
-  // Save the answer to a temporary array or send to backend
-  console.log(
-    `Answer for question "${questions[currentQuestionIndex].question}": ${answerInput.value}`
-  );
 
-  currentQuestionIndex++;
-  updateInterviewUI();
+nextQuestionBtn.addEventListener('click', async () => {
+    const userAnswer = answerInput.value;
+    const question = questions[currentQuestionIndex].question;
+    
+    // Check if the user has provided an answer
+    if (userAnswer) {
+        // Show a loading message
+        feedbackArea.textContent = "Getting feedback...";
+        feedbackArea.style.color = "gray";
+
+        try {
+            const response = await fetch('http://localhost:5000/api/interview/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, userAnswer }),
+            });
+
+            const result = await response.json();
+            
+            // Clear the loading message and display the feedback
+            feedbackArea.textContent = result.feedback;
+            feedbackArea.style.color = "black";
+            
+        } catch (error) {
+            console.error('Error fetching AI feedback:', error);
+            feedbackArea.textContent = 'Could not get feedback. Please try again.';
+            feedbackArea.style.color = "red";
+        }
+    } else {
+        feedbackArea.textContent = "Please provide an answer before moving on.";
+        feedbackArea.style.color = "red";
+    }
+
+    // Move to the next question
+    currentQuestionIndex++;
+    updateInterviewUI();
 });
 
 // Original logout button script

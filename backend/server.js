@@ -1,95 +1,102 @@
-const express = require('express');
-const mongoose = require('mongoose');
-
-const cors = require('cors');
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const path = require("path");
+const bcrypt = require("bcryptjs");
+const User = require("./models/User");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 const port = 5000;
 
 // Connect to MongoDB
-const dbURI = 'mongodb://localhost:27017/ai_coach_db'; // Replace with your MongoDB URI
-mongoose.connect(dbURI)
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch(err => console.error('MongoDB connection error:', err));
+const dbURI = "mongodb://localhost:27017/ai_coach_db";
+mongoose
+  .connect(dbURI)
+  .then(() => console.log("MongoDB connected successfully"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
-// Middleware to parse JSON bodies
+// Middleware: All 'app.use' calls should go at the top
+app.use(cors());
 app.use(express.json());
 
-// Use CORS middleware
-app.use(cors());
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, "..", "public")));
 
-const path = require('path');
-app.use(express.static(path.join(__dirname, '..', 'public')));
+const genAI = new GoogleGenerativeAI("AIzaSyDyRReNEZOkyYhf-NDh4lBxv1JmT07wLqA");
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'index.html'));
-});
-
-
-const bcrypt = require('bcryptjs');
-const User = require('./models/User'); // Import the User model
-
-// API to get interview questions
-app.get('/api/interview/questions', (req, res) => {
-  const questions = require('./data/questions.json');
-  res.status(200).json(questions);
-});
+// --- API Routes ---
+// The order of these routes doesn't matter as they are specific endpoints
 
 // User Registration Route
-app.post('/api/auth/register', async (req, res) => {
+app.post("/api/auth/register", async (req, res) => {
   const { name, email, password } = req.body;
-
   try {
-    // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: 'User with this email already exists' });
+      return res
+        .status(400)
+        .json({ msg: "User with this email already exists" });
     }
-
-    // Create a new user instance
-    user = new User({
-      name,
-      email,
-      password,
-    });
-
-    // Hash the password
+    user = new User({ name, email, password });
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
-
-    // Save the user to the database
     await user.save();
-    res.status(201).json({ msg: 'User registered successfully' });
-
+    res.status(201).json({ msg: "User registered successfully" });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).send("Server Error");
   }
 });
 
 // User Login Route
-app.post('/api/auth/login', async (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body;
-
   try {
-    // Check if the user exists
     let user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: "Invalid credentials" });
     }
-
-    // Compare the provided password with the hashed password in the db
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: "Invalid credentials" });
     }
-
-    // If credentials are valid, send a success response
-    res.status(200).json({ msg: 'Logged in successfully', user: { name: user.name, email: user.email } });
-
+    res
+      .status(200)
+      .json({
+        msg: "Logged in successfully",
+        user: { name: user.name, email: user.email },
+      });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).send("Server Error");
+  }
+});
+
+// API to get interview questions
+app.get("/api/interview/questions", (req, res) => {
+  const questions = require("./data/questions.json");
+  res.status(200).json(questions);
+});
+
+// New route to get AI feedback
+app.post("/api/interview/feedback", async (req, res) => {
+  const { question, userAnswer } = req.body;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // Use the appropriate model name
+    const prompt = `You are an AI career coach. Provide constructive feedback on the following interview answer. Focus on clarity, content, and potential improvements. Keep your feedback concise, limited to a single paragraph and no more than 3-4 key points.
+    Question: "${question}"
+    User's Answer: "${userAnswer}"`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const feedback = response.text();
+
+    res.status(200).json({ feedback });
+  } catch (error) {
+    console.error("Error getting AI feedback:", error);
+    res.status(500).json({ msg: "Failed to get feedback from AI." });
   }
 });
 
