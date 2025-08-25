@@ -11,11 +11,6 @@ if (!user) {
   ).textContent = `Welcome, ${user.name} 👋`;
 }
 
-// logout button
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem("user");
-  window.location.href = "login.html";
-});
 // New interview functionality
 const startInterviewBtn = document.getElementById("startInterviewBtn");
 const nextQuestionBtn = document.getElementById("nextQuestionBtn");
@@ -23,9 +18,11 @@ const questionDisplay = document.getElementById("currentQuestion");
 const answerInput = document.getElementById("answerInput");
 const progressIndicator = document.getElementById("progressIndicator");
 const feedbackArea = document.getElementById("feedback-area");
+const progressBarContainer = document.querySelector(".progress-bar-container");
 
 let questions = [];
 let currentQuestionIndex = 0;
+let interviewFeedback = [];
 
 // Function to fetch questions from the backend
 async function fetchQuestions() {
@@ -45,6 +42,8 @@ async function fetchQuestions() {
   }
 }
 
+// ... (your existing code)
+
 // Function to start the interview
 function startInterview() {
   if (questions.length === 0) {
@@ -56,10 +55,18 @@ function startInterview() {
   startInterviewBtn.style.display = "none";
   nextQuestionBtn.style.display = "inline-block";
   answerInput.style.display = "block";
+
+  // Show the progress bar container and set initial width
+  progressBarContainer.style.display = "block";
+  document.getElementById("progress-bar").style.width = "0%";
 }
 
 // Function to display the current question
 function updateInterviewUI() {
+  // Update progress bar on each question
+  const progressPercentage = (currentQuestionIndex / questions.length) * 100;
+  document.getElementById("progress-bar").style.width = `${progressPercentage}%`;
+  
   if (currentQuestionIndex < questions.length) {
     const question = questions[currentQuestionIndex];
     questionDisplay.textContent = question.question;
@@ -72,7 +79,15 @@ function updateInterviewUI() {
     progressIndicator.textContent = "";
     nextQuestionBtn.style.display = "none";
     answerInput.style.display = "none";
-    // Here you would send the answers to the backend for AI feedback
+
+    feedbackArea.textContent = ""; // Clear existing feedback
+    interviewFeedback.forEach((feedback, index) => {
+      const feedbackItem = document.createElement("p");
+      feedbackItem.textContent = `Question ${index + 1} Feedback: ${feedback}`;
+      feedbackArea.appendChild(feedbackItem);
+    });
+    // Hide progress bar on completion
+    progressBarContainer.style.display = "none";
   }
 }
 
@@ -81,45 +96,54 @@ startInterviewBtn.addEventListener("click", () => {
   fetchQuestions();
 });
 
+nextQuestionBtn.addEventListener("click", async () => {
+  const userAnswer = answerInput.value;
+  const question = questions[currentQuestionIndex].question;
 
-nextQuestionBtn.addEventListener('click', async () => {
-    const userAnswer = answerInput.value;
-    const question = questions[currentQuestionIndex].question;
-    
-    // Check if the user has provided an answer
-    if (userAnswer) {
-        // Show a loading message
-        feedbackArea.textContent = "Getting feedback...";
-        feedbackArea.style.color = "gray";
+  // Check if the user has provided an answer
+  if (!userAnswer) {
+    feedbackArea.textContent = "Please provide an answer before moving on.";
+    feedbackArea.style.color = "red";
+    return;
+  }
 
-        try {
-            const response = await fetch('http://localhost:5000/api/interview/feedback', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question, userAnswer }),
-            });
+  feedbackArea.textContent = "Getting feedback...";
+  feedbackArea.style.color = "gray";
 
-            const result = await response.json();
-            
-            // Clear the loading message and display the feedback
-            feedbackArea.textContent = result.feedback;
-            feedbackArea.style.color = "black";
-            
-        } catch (error) {
-            console.error('Error fetching AI feedback:', error);
-            feedbackArea.textContent = 'Could not get feedback. Please try again.';
-            feedbackArea.style.color = "red";
-        }
-    } else {
-        feedbackArea.textContent = "Please provide an answer before moving on.";
-        feedbackArea.style.color = "red";
-    }
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/interview/feedback",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, userAnswer }),
+      }
+    );
 
-    // Move to the next question
+    const result = await response.json();
+
+    feedbackArea.textContent = result.feedback;
+    feedbackArea.style.color = "black";
+
+    // Store feedback after receiving it
+    interviewFeedback.push(result.feedback);
+
+    // Increment index and update UI with the next question
     currentQuestionIndex++;
     updateInterviewUI();
+
+    // After the last question, set progress bar to 100%
+    if (currentQuestionIndex === questions.length) {
+      document.getElementById("progress-bar").style.width = "100%";
+    }
+  } catch (error) {
+    console.error("Error fetching AI feedback:", error);
+    feedbackArea.textContent = "Could not get feedback. Please try again.";
+    feedbackArea.style.color = "red";
+  }
 });
 
+// ... (your existing code for logout button)
 // Original logout button script
 document.getElementById("logoutBtn").addEventListener("click", () => {
   localStorage.removeItem("user");

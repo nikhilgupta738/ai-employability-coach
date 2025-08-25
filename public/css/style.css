@@ -46,3 +46,20 @@ header nav a {
   margin: 10px 0;
   padding: 8px;
 }
+
+/* Progress Bar Styles */
+.progress-bar-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    margin-top: 1rem;
+    height: 10px;
+}
+
+#progress-bar {
+    height: 100%;
+    background-color: #4f46e5;
+    border-radius: 5px;
+    width: 0%;
+    transition: width 0.4s ease-in-out;
+}
