@@ -19,6 +19,7 @@ const answerInput = document.getElementById("answerInput");
 const progressIndicator = document.getElementById("progressIndicator");
 const feedbackArea = document.getElementById("feedback-area");
 const progressBarContainer = document.querySelector(".progress-bar-container");
+const loadingSpinner = document.getElementById("loading-spinner");
 
 let questions = [];
 let currentQuestionIndex = 0;
@@ -65,8 +66,10 @@ function startInterview() {
 function updateInterviewUI() {
   // Update progress bar on each question
   const progressPercentage = (currentQuestionIndex / questions.length) * 100;
-  document.getElementById("progress-bar").style.width = `${progressPercentage}%`;
-  
+  document.getElementById(
+    "progress-bar"
+  ).style.width = `${progressPercentage}%`;
+
   if (currentQuestionIndex < questions.length) {
     const question = questions[currentQuestionIndex];
     questionDisplay.textContent = question.question;
@@ -107,8 +110,8 @@ nextQuestionBtn.addEventListener("click", async () => {
     return;
   }
 
-  feedbackArea.textContent = "Getting feedback...";
-  feedbackArea.style.color = "gray";
+  feedbackArea.style.display = "none";
+  loadingSpinner.style.display = "block";
 
   try {
     const response = await fetch(
@@ -122,6 +125,9 @@ nextQuestionBtn.addEventListener("click", async () => {
 
     const result = await response.json();
 
+    // Hide the spinner, show feedback text
+    loadingSpinner.style.display = "none";
+    feedbackArea.style.display = "block";
     feedbackArea.textContent = result.feedback;
     feedbackArea.style.color = "black";
 
@@ -140,6 +146,8 @@ nextQuestionBtn.addEventListener("click", async () => {
     console.error("Error fetching AI feedback:", error);
     feedbackArea.textContent = "Could not get feedback. Please try again.";
     feedbackArea.style.color = "red";
+    loadingSpinner.style.display = "none";
+    feedbackArea.style.display = "block";
   }
 });
 
