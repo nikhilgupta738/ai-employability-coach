@@ -147,5 +147,5 @@ nextQuestionBtn.addEventListener("click", async () => {
 // Original logout button script
 document.getElementById("logoutBtn").addEventListener("click", () => {
   localStorage.removeItem("user");
-  window.location.href = "login.html";
+  window.location.href = "index.html";
 });

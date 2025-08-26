@@ -4,3 +4,4 @@ node_modules/
 # You can also ignore other files and directories
 .DS_Store
 /dist/
+/backend/.env

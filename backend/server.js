@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -23,10 +24,9 @@ app.use(express.json());
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, "..", "public")));
 
-const genAI = new GoogleGenerativeAI("AIzaSyDyRReNEZOkyYhf-NDh4lBxv1JmT07wLqA");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // --- API Routes ---
-// The order of these routes doesn't matter as they are specific endpoints
 
 // User Registration Route
 app.post("/api/auth/register", async (req, res) => {
