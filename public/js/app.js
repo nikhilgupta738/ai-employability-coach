@@ -6,9 +6,17 @@ if (!user) {
   window.location.href = "login.html";
 } else {
   // personalize dashboard
-  document.getElementById(
-    "welcomeText"
-  ).textContent = `Welcome, ${user.name} 👋`;
+  const welcomeEl = document.getElementById("welcomeText");
+  if (welcomeEl) {
+    welcomeEl.textContent = `Welcome, ${user.name} 👋`;
+  }
+  // Populate profile page data if the elements exist
+  const profileNameEl = document.getElementById("profileName");
+  const profileEmailEl = document.getElementById("profileEmail");
+  if (profileNameEl && profileEmailEl) {
+    profileNameEl.textContent = user.name;
+    profileEmailEl.textContent = user.email;
+  }
 }
 
 // New interview functionality
@@ -20,6 +28,7 @@ const progressIndicator = document.getElementById("progressIndicator");
 const feedbackArea = document.getElementById("feedback-area");
 const progressBarContainer = document.querySelector(".progress-bar-container");
 const loadingSpinner = document.getElementById("loading-spinner");
+const newButton = document.getElementById("startNewI");
 
 let questions = [];
 let currentQuestionIndex = 0;
@@ -82,6 +91,7 @@ function updateInterviewUI() {
     progressIndicator.textContent = "";
     nextQuestionBtn.style.display = "none";
     answerInput.style.display = "none";
+    newButton.style.display = "block";
 
     feedbackArea.textContent = ""; // Clear existing feedback
     interviewFeedback.forEach((feedback, index) => {
@@ -149,6 +159,20 @@ nextQuestionBtn.addEventListener("click", async () => {
     loadingSpinner.style.display = "none";
     feedbackArea.style.display = "block";
   }
+});
+
+newButton.addEventListener("click", () => {
+  // Reset state for a new interview
+  interviewFeedback = [];
+  currentQuestionIndex = 0;
+  updateInterviewUI();
+  newButton.style.display = "none";
+  nextQuestionBtn.style.display = "inline-block";
+  answerInput.style.display = "block";
+  feedbackArea.textContent = "";
+  startInterviewBtn.style.display = "none";
+  progressBarContainer.style.display = "block";
+  document.getElementById("progress-bar").style.width = "0%";
 });
 
 // ... (your existing code for logout button)
